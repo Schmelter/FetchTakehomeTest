@@ -3,6 +3,7 @@ package com.example.fetchtakehometest
 import android.app.Application
 import com.example.fetchtakehometest.koin.apiModule
 import com.example.fetchtakehometest.koin.appModule
+import com.example.fetchtakehometest.koin.networkModule
 import com.example.fetchtakehometest.koin.respositoryModule
 import com.example.fetchtakehometest.koin.viewModules
 import org.koin.android.ext.koin.androidContext
@@ -23,6 +24,7 @@ class MainApplication : Application() {
             modules(
                 listOf(
                     appModule,
+                    networkModule,
                     apiModule,
                     respositoryModule,
                     viewModules

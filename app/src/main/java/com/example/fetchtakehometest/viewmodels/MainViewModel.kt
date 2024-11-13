@@ -10,23 +10,35 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.fetchtakehometest.datamodel.FetchDataElement
+import com.example.fetchtakehometest.datamodel.ResultWrapper
+import com.example.fetchtakehometest.services.FetchDataRepository
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val application: Application
+    private val application: Application,
+    private val fetchDataRepository: FetchDataRepository
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<MainViewModelState> = MutableStateFlow(MainViewModelState())
     val uiState: StateFlow<MainViewModelState> = _uiState.asStateFlow()
 
-    private val _exceptions = Channel<Exception>(Channel.BUFFERED)
+    private val _exceptions = Channel<Throwable>(Channel.BUFFERED)
     val exceptions = _exceptions.receiveAsFlow()
+
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch {
+            _exceptions.send(throwable)
+        }
+    }
 
     private fun updateUiState(updateAction: (MainViewModelState) -> MainViewModelState) {
         _uiState.update {
@@ -46,36 +58,30 @@ class MainViewModel(
     }
 
     fun onFetch() {
-        updateUiState { old ->
-            old.copy(
-                fetchDataElements = listOf(
-                    FetchDataElement(
-                        id = 1,
-                        listId = 1,
-                        name = "One"
-                    ),
-                    FetchDataElement(
-                        id = 2,
-                        listId = 2,
-                        name = "Two"
-                    ),
-                    FetchDataElement(
-                        id = 3,
-                        listId = 3,
-                        name = "Three"
-                    ),
-                    FetchDataElement(
-                        id = 4,
-                        listId = 4,
-                        name = "Four"
-                    ),
-                    FetchDataElement(
-                        id = 5,
-                        listId = 5,
-                        name = "Five"
-                    ),
-                )
-            )
+        viewModelScope.launch(coroutineExceptionHandler) {
+            val fetchResult = fetchDataRepository.getFetchData()
+
+            when (fetchResult) {
+                is ResultWrapper.GenericError -> {
+                    _exceptions.send(fetchResult.exception ?: Exception("Generic, Unknown Error"))
+                }
+
+                is ResultWrapper.HttpStatusError -> {
+                    _exceptions.send(fetchResult.exception ?: Exception("Generic, Http Error"))
+                }
+
+                is ResultWrapper.Success -> {
+                    updateUiState { old ->
+                        old.copy(
+                            fetchDataElements = fetchResult.data
+                                ?.filter { it.name?.isNotEmpty() ?: false }
+                                ?.sortedWith(
+                                    compareBy({ it.listId }, { it.name })
+                                )
+                        )
+                    }
+                }
+            }
         }
     }
 

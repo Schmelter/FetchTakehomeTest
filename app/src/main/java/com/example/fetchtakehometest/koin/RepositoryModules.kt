@@ -7,5 +7,5 @@ import org.koin.dsl.module
 
 val respositoryModule = module {
 
-    single { FetchDataRepositoryImpl(get(), Dispatchers.IO) }
+    single<FetchDataRepository> { FetchDataRepositoryImpl(get(), Dispatchers.IO) }
 }
