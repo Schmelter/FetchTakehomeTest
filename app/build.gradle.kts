@@ -69,6 +69,14 @@ dependencies {
     api("com.squareup.okhttp3:logging-interceptor:4.12.0")
     api("com.squareup.okhttp3:okhttp-tls:4.12.0")
 
+    // Constraint Layout
+    api("androidx.constraintlayout:constraintlayout:2.2.0-alpha13")
+    api("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha13")
+    api("androidx.constraintlayout:constraintlayout-core:1.1.0-alpha13")
+
+    // App Compat
+    api("androidx.appcompat:appcompat:1.6.1")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
