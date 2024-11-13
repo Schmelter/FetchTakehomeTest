@@ -58,8 +58,18 @@ class MainViewModel(
     }
 
     fun onFetch() {
+        updateUiState { old ->
+            old.copy(
+                isLoading = true
+            )
+        }
         viewModelScope.launch(coroutineExceptionHandler) {
             val fetchResult = fetchDataRepository.getFetchData()
+            updateUiState { old ->
+                old.copy(
+                    isLoading = false
+                )
+            }
 
             when (fetchResult) {
                 is ResultWrapper.GenericError -> {

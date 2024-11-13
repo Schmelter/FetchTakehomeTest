@@ -6,8 +6,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -119,6 +125,7 @@ fun MainView(
                 Text("Reset Data")
             }
         } ?: run {
+
             Button(
                 modifier = Modifier
                     .constrainAs(createRef()) {
@@ -133,6 +140,21 @@ fun MainView(
             ) {
                 Text("Fetch and Display Data")
             }
+        }
+
+        if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .constrainAs(createRef()) {
+                        centerHorizontallyTo(parent)
+                        centerVerticallyTo(parent, 0.3f)
+
+                        width = Dimension.value(32.dp)
+                        height = Dimension.value(32.dp)
+                    },
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
         }
     }
 }
@@ -156,8 +178,29 @@ fun MainViewNoData() {
 
 @Preview(widthDp = 327, heightDp = 500)
 @Composable
+fun MainViewNoDataLoading() {
+    val uiState = MainViewModelState(
+        isLoading = true
+    )
+
+    ConstraintLayout(
+        modifier = Modifier
+            .background(Color.Green)
+    ) {
+        MainView(
+            uiState,
+            onFetch = {},
+            onReset = {}
+        )
+    }
+}
+
+@Preview(widthDp = 327, heightDp = 500)
+@Composable
 fun MainViewWithData() {
-    val uiState = MainViewModelState(listOf(
+    val uiState = MainViewModelState(
+        isLoading = false,
+        fetchDataElements = listOf(
         FetchDataElement(
             id = 1,
             listId = 1,
